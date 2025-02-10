@@ -1,0 +1,80 @@
+<!-- checkout.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="x-icon" href="Logoooo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="logo">Twinkle Toes</div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="cart.html">Cart</a></li>
+                <li><a href="profile.php">Profile</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Checkout</h2>
+        <form id="checkout-form">
+            <label for="address">Address:</label>
+            <br>
+            <input type="text" id="address" name="address" required>
+            <br><br>
+            <label for="notes">Notes:</label>
+            <br>
+            <textarea id="notes" name="notes"></textarea>
+            <p>Total: <span id="total-price">0</span></p>
+            <button type="submit">Place Order</button>
+        </form>
+    </main>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const totalPrice = urlParams.get("total") || "0";
+        document.getElementById("total-price").textContent = `$${parseFloat(totalPrice).toFixed(2)}`;
+
+        document.getElementById("checkout-form").addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const address = document.getElementById("address").value.trim();
+            const notes = document.getElementById("notes").value.trim();
+            const total = totalPrice;
+            const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+            if (!address || cart.length === 0) {
+                alert("Please provide a valid address and ensure your cart is not empty.");
+                return;
+            }
+
+            const orderDetails = { address, notes, total, cart };
+
+            try {
+                const response = await fetch("place_order.php", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(orderDetails),
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert("Order placed successfully!");
+                    window.location.href = `order_success.html?orderId=${data.orderId}`;
+                } else {
+                    alert(data.message || "Failed to place the order.");
+                }
+            } catch (error) {
+                alert("An error occurred. Please try again later.");
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
